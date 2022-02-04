@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Yetibyte.Twitch.Bobota">
+      <HintPath>..\..\..\..\Documents\Tools\Bobota_v1-2\Yetibyte.Twitch.Bobota.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
