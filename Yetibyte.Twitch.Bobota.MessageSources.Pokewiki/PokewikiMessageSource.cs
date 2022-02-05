@@ -37,6 +37,8 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
         private bool ValidatePokemonName(string name, out string displayName)
         {
+            displayName = string.Empty;
+
             string pokemonName = _pokemonNames.FirstOrDefault(pn => string.Compare(pn, name, CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) == 0);
 
             if (!string.IsNullOrWhiteSpace(pokemonName))
