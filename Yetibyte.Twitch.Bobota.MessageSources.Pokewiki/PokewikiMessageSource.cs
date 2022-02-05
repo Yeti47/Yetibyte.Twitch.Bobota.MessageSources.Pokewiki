@@ -33,9 +33,19 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
         private bool IsValidPokemonNumber(int number) => number > 0 && number <= _pokemonNames.Count;
 
-        private bool IsValidPokemonName(string name)
+        private bool ValidatePokemonName(string name) => ValidatePokemonName(name, out _);
+
+        private bool ValidatePokemonName(string name, out string displayName)
         {
-            return _pokemonNames.Any(pn => string.Compare(pn, name, CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) == 0);
+            string pokemonName = _pokemonNames.FirstOrDefault(pn => string.Compare(pn, name, CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) == 0);
+
+            if (!string.IsNullOrWhiteSpace(pokemonName))
+            {
+                displayName = pokemonName;
+                return true;
+            }
+
+            return false;
         }
 
         private string GetPokemonNameByNumber(int pokemonNumber) => IsValidPokemonNumber(pokemonNumber) ? _pokemonNames[pokemonNumber - 1] : string.Empty;
@@ -152,7 +162,7 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
                     pokemonNameParam = GetPokemonNameByNumber(pokemonNumberParam);
                 }
-                else if (!IsValidPokemonName(pokemonNameParam))
+                else if (!ValidatePokemonName(pokemonNameParam, out pokemonNameParam))
                 {
                     return "Sorry, {USER}! Aber ein Pokémon mit dem Namen '" + pokemonNameParam + "' kenne ich nicht. :(";
                 }
