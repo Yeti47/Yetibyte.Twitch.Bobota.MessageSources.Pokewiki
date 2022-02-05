@@ -55,7 +55,7 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
         private int GetPokemonNumberByName(string pokemonName)
         {
             return ValidatePokemonName(pokemonName, out string displayName)
-                ? _pokemonNames.IndexOf(displayName)
+                ? (_pokemonNames.IndexOf(displayName) + 1)
                 : -1;
         }
 
