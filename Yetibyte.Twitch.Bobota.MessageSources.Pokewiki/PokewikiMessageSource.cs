@@ -30,11 +30,17 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
             DownloadPokemonNames();
         }
 
+        private bool IsValidPokemonNumber(int number) => number > 0 && number <= _pokemonNames.Count;
+
+        private bool IsValidPokemonName(string name) => _pokemonNames.Any(pn => pn.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        private string GetPokemonNameByNumber(int pokemonNumber) => IsValidPokemonNumber(pokemonNumber) ? _pokemonNames[pokemonNumber - 1] : string.Empty;
+
         private string GetRandomPokemonName() => _pokemonNames.Any() ? _pokemonNames[_random.Next(_pokemonNames.Count)] : string.Empty;
 
-        public string BuildPokewikiUrl(string pokemonName) => $"{POKEWIKI_BASE_URL}/{pokemonName}";
+        private string BuildPokewikiUrl(string pokemonName) => $"{POKEWIKI_BASE_URL}/{pokemonName}";
 
-        public string GetRandomPokewikiUrl()
+        private string GetRandomPokewikiUrl()
         {
             string randomPokemonName = GetRandomPokemonName();
             string url = BuildPokewikiUrl(randomPokemonName);
@@ -42,7 +48,7 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
             return url;
         }
 
-        public IEnumerable<string> GetTriviaForPokemon(string pokemonName)
+        private IEnumerable<string> GetTriviaForPokemon(string pokemonName)
         {
             if (_triviaCache.ContainsKey(pokemonName))
             {
@@ -126,8 +132,24 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
         }
 
-        public string GetRandomMessage()
+        public string GetRandomMessage(string command, string[] parameters)
         {
+            string pokemonNameParam = string.Empty;
+
+            if (parameters != null && parameters.Any())
+            {
+                pokemonNameParam = parameters[0].Trim();
+
+                if (int.TryParse(pokemonNameParam, out int pokemonNumberParam))
+                {
+                    if (!IsValidPokemonNumber(pokemonNumberParam))
+                        return "Sorry, {USER}! Aber es gibt leider kein Pokémon mit der Nummer " + $"{pokemonNumberParam.ToString("000")}.";
+
+                    pokemonNameParam = GetPokemonNameByNumber(pokemonNumberParam);
+                }
+
+            }
+
             string pokemonName = string.Empty;
 
             IEnumerable<string> triviaSequence = Array.Empty<string>();
@@ -136,7 +158,7 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
             while (!triviaSequence.Any() && tryPokemonCount++ < MAX_TRIES_POKEMON)
             {
-                pokemonName = GetRandomPokemonName();
+                pokemonName = string.IsNullOrWhiteSpace(pokemonNameParam) ? GetRandomPokemonName() : pokemonNameParam;
 
                 int tryTriviaCount = 0;
 
@@ -144,6 +166,9 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
                 {
                     triviaSequence = GetTriviaForPokemon(pokemonName);
                 }
+
+                if (!string.IsNullOrWhiteSpace(pokemonNameParam))
+                    break;
             }
 
             if (!triviaSequence.Any())
