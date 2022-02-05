@@ -17,19 +17,23 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
         private const int MAX_TRIES_TRIVIA = 3;
         private const int MAX_TRIES_POKEMON = 10;
 
-        private const string LANGUAGE_ID_GERMAN = "6";
+        private const int MAX_MESSAGE_LENGTH = 500;
+        private const string MESSAGE_TOO_LONG_SUFFIX = "[...]";
 
-        private const string TRIVIA_OUTER_REGEX = "id=\"Trivia\"(.|\\n)*?<ul>(.|\\n)*?</ul>";
-        private const string TRIVIA_INNER_REGEX = "<li>(.|\\n)*?</li>";
+        private const string LANGUAGE_ID_GERMAN = "6";
 
         private const string POKEMON_NUMBER_OUTPUT_FORMAT = "000";
 
         private readonly List<string> _pokemonNames = new List<string>();
         private readonly Dictionary<string, IEnumerable<string>> _triviaCache = new Dictionary<string, IEnumerable<string>>();
         private Random _random = new Random();
+        private ITriviaScraper _triviaScraper;
 
         public void Initialize()
         {
+            //_triviaScraper = new RegexTriviaScraper();
+            _triviaScraper = new HtmlAgilityPackTriviaScraper();
+
             DownloadPokemonNames();
         }
 
@@ -80,44 +84,9 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
                 return _triviaCache[pokemonName];
             }
 
-            List<string> trivia = new List<string>();
-
             string pokewikiUrl = BuildPokewikiUrl(pokemonName);
 
-            string htmlContent = string.Empty;
-
-            try
-            {
-                using (HttpClient httpClient = new HttpClient())
-                {
-                    var response = httpClient.Send(new HttpRequestMessage(HttpMethod.Get, new Uri(pokewikiUrl)));
-
-                    using (Stream stream = response.Content.ReadAsStream())
-                    {
-                        using StreamReader streamReader = new StreamReader(stream);
-                        htmlContent = streamReader.ReadToEnd();
-                    }
-                }
-
-                Match triviaOuterMatch = Regex.Match(htmlContent, TRIVIA_OUTER_REGEX);
-
-                if (triviaOuterMatch.Success)
-                {
-                    MatchCollection triviaMatches = Regex.Matches(triviaOuterMatch.Value, TRIVIA_INNER_REGEX);
-
-                    foreach (Match match in triviaMatches)
-                    {
-                        string triviaLine = Regex.Replace(match.Value, "<(.|\\n)*?>", string.Empty);
-                        triviaLine = Regex.Replace(triviaLine, "&[a-zA-Z0-9]+?;", string.Empty);
-
-                        trivia.Add(triviaLine);
-                    }
-                }
-            }
-            catch
-            {
-
-            }
+            IEnumerable<string> trivia = _triviaScraper.GetPokemonTrivia(pokewikiUrl);
 
             if (trivia.Any())
             {
@@ -212,7 +181,12 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
             int pokemonOutputNumber = GetPokemonNumberByName(pokemonName);
 
-            return "{USER}, " + $"ein interessanter Fakt zu {pokemonName} (#{pokemonOutputNumber.ToString(POKEMON_NUMBER_OUTPUT_FORMAT)}): {trivia}";
+            string output = "{USER}, " + $"ein interessanter Fakt zu {pokemonName} (#{pokemonOutputNumber.ToString(POKEMON_NUMBER_OUTPUT_FORMAT)}): {trivia}";
+
+            if (output.Length > MAX_MESSAGE_LENGTH)
+                output = output.Substring(0, MAX_MESSAGE_LENGTH - MESSAGE_TOO_LONG_SUFFIX.Length) + MESSAGE_TOO_LONG_SUFFIX;
+
+            return output;
 
         }
     }
