@@ -22,6 +22,8 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
         private const string TRIVIA_OUTER_REGEX = "id=\"Trivia\"(.|\\n)*?<ul>(.|\\n)*?</ul>";
         private const string TRIVIA_INNER_REGEX = "<li>(.|\\n)*?</li>";
 
+        private const string POKEMON_NUMBER_OUTPUT_FORMAT = "000";
+
         private readonly List<string> _pokemonNames = new List<string>();
         private readonly Dictionary<string, IEnumerable<string>> _triviaCache = new Dictionary<string, IEnumerable<string>>();
         private Random _random = new Random();
@@ -48,6 +50,13 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
             }
 
             return false;
+        }
+
+        private int GetPokemonNumberByName(string pokemonName)
+        {
+            return ValidatePokemonName(pokemonName, out string displayName)
+                ? _pokemonNames.IndexOf(displayName)
+                : -1;
         }
 
         private string GetPokemonNameByNumber(int pokemonNumber) => IsValidPokemonNumber(pokemonNumber) ? _pokemonNames[pokemonNumber - 1] : string.Empty;
@@ -160,7 +169,7 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
                 if (int.TryParse(pokemonNameParam, out int pokemonNumberParam))
                 {
                     if (!IsValidPokemonNumber(pokemonNumberParam))
-                        return "Sorry, {USER}! Aber es gibt leider kein Pokémon mit der Nummer " + $"{pokemonNumberParam.ToString("000")}.";
+                        return "Sorry, {USER}! Aber es gibt leider kein Pokémon mit der Nummer " + $"{pokemonNumberParam.ToString(POKEMON_NUMBER_OUTPUT_FORMAT)}.";
 
                     pokemonNameParam = GetPokemonNameByNumber(pokemonNumberParam);
                 }
@@ -201,7 +210,9 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
             string trivia = triviaSequence.ElementAt(_random.Next(triviaSequence.Count()));
 
-            return "{USER}, " + $"ein interessanter Fakt zu {pokemonName}: {trivia}";
+            int pokemonOutputNumber = GetPokemonNumberByName(pokemonName);
+
+            return "{USER}, " + $"ein interessanter Fakt zu {pokemonName} (#{pokemonOutputNumber.ToString(POKEMON_NUMBER_OUTPUT_FORMAT)}): {trivia}";
 
         }
     }
