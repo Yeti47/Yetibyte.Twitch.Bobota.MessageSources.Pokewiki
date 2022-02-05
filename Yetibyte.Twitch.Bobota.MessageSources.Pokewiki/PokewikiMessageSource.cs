@@ -82,7 +82,8 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
                     foreach (Match match in triviaMatches)
                     {
-                        string triviaLine = Regex.Replace(match.Value, "<(.|\\n)*?>", String.Empty);
+                        string triviaLine = Regex.Replace(match.Value, "<(.|\\n)*?>", string.Empty);
+                        triviaLine = Regex.Replace(triviaLine, "&[a-zA-Z0-9]+?;", string.Empty);
 
                         trivia.Add(triviaLine);
                     }
