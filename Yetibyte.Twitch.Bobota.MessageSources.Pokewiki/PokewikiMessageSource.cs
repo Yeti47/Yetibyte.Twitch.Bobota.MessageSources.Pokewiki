@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -32,7 +33,10 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
         private bool IsValidPokemonNumber(int number) => number > 0 && number <= _pokemonNames.Count;
 
-        private bool IsValidPokemonName(string name) => _pokemonNames.Any(pn => pn.Equals(name, StringComparison.OrdinalIgnoreCase));
+        private bool IsValidPokemonName(string name)
+        {
+            return _pokemonNames.Any(pn => string.Compare(pn, name, CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace | CompareOptions.IgnoreCase) == 0);
+        }
 
         private string GetPokemonNameByNumber(int pokemonNumber) => IsValidPokemonNumber(pokemonNumber) ? _pokemonNames[pokemonNumber - 1] : string.Empty;
 
@@ -139,7 +143,7 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
             if (parameters != null && parameters.Any())
             {
-                pokemonNameParam = parameters[0].Trim();
+                pokemonNameParam = parameters[0].Trim().Trim('-', '_', '+', '"', '\'');
 
                 if (int.TryParse(pokemonNameParam, out int pokemonNumberParam))
                 {
@@ -147,6 +151,10 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
                         return "Sorry, {USER}! Aber es gibt leider kein Pokémon mit der Nummer " + $"{pokemonNumberParam.ToString("000")}.";
 
                     pokemonNameParam = GetPokemonNameByNumber(pokemonNumberParam);
+                }
+                else if (!IsValidPokemonName(pokemonNameParam))
+                {
+                    return "Sorry, {USER}! Aber ein Pokémon mit dem Namen '" + pokemonNameParam + "' kenne ich nicht. :(";
                 }
 
             }
@@ -174,7 +182,9 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
             if (!triviaSequence.Any())
             {
-                return "{USER}, ich kann gerade leider keine Trivia abrufen. Tut mir leid :( Versuch es später nochmal!";
+                return string.IsNullOrWhiteSpace(pokemonNameParam)
+                    ? "{USER}, ich kann gerade leider keine Trivia abrufen. Tut mir leid :( Versuch es später nochmal!"
+                    : "{USER}, zu diesem Pokémon fällt mir leider überhaupt nichts Interessantes ein. Tut mir leid :(";
             }
 
             string trivia = triviaSequence.ElementAt(_random.Next(triviaSequence.Count()));
