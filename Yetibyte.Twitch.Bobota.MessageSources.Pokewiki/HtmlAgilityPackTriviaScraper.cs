@@ -30,7 +30,7 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
 			foreach (var listItemNode in currNode.ChildNodes.Where(c => c.Name == "li"))
 			{
-				string triviaLine = listItemNode.InnerText;
+				string triviaLine = listItemNode.InnerText ?? string.Empty;
 				triviaLine = Regex.Replace(triviaLine, "&[a-zA-Z0-9#]+?;", string.Empty);
 
 				trivia.Add(triviaLine);
