@@ -135,16 +135,19 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
             {
                 pokemonNameParam = parameters[0].Trim().Trim('-', '_', '+', '"', '\'');
 
-                if (int.TryParse(pokemonNameParam, out int pokemonNumberParam))
+                if (!string.IsNullOrWhiteSpace(pokemonNameParam))
                 {
-                    if (!IsValidPokemonNumber(pokemonNumberParam))
-                        return "Sorry, {USER}! Aber es gibt leider kein Pokémon mit der Nummer " + $"{pokemonNumberParam.ToString(POKEMON_NUMBER_OUTPUT_FORMAT)}.";
+                    if (int.TryParse(pokemonNameParam, out int pokemonNumberParam))
+                    {
+                        if (!IsValidPokemonNumber(pokemonNumberParam))
+                            return "Sorry, {USER}! Aber es gibt leider kein Pokémon mit der Nummer " + $"{pokemonNumberParam.ToString(POKEMON_NUMBER_OUTPUT_FORMAT)}.";
 
-                    pokemonNameParam = GetPokemonNameByNumber(pokemonNumberParam);
-                }
-                else if (!ValidatePokemonName(pokemonNameParam, out pokemonNameParam))
-                {
-                    return "Sorry, {USER}! Aber ein Pokémon mit dem Namen '" + pokemonNameParam + "' kenne ich nicht. :(";
+                        pokemonNameParam = GetPokemonNameByNumber(pokemonNumberParam);
+                    }
+                    else if (!ValidatePokemonName(pokemonNameParam, out pokemonNameParam))
+                    {
+                        return "Sorry, {USER}! Aber ein Pokémon mit dem Namen '" + parameters[0].Trim() + "' kenne ich nicht. :(";
+                    }
                 }
 
             }
