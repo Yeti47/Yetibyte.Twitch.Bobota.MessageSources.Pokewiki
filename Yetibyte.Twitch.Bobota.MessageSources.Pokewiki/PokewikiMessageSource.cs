@@ -24,6 +24,11 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
         private const string POKEMON_NUMBER_OUTPUT_FORMAT = "000";
 
+        private const string MISSINGNO_POKEMON_NAME = "missingno";
+        private const string MISSINGNO_POKEMON_NAME_ALT = "missingno.";
+
+        private const string MISSINGNO_EASTEREGG_MSG = "[̸̹͍͖̜̱̰̦̩̈́̈̇c̷̺̥̗͒͐̔̉͗̈́o̷͉̜͙̥͔͇͑̈́́͜r̴̗̘̬͇͎̓͒̓̈́r̸̛͔͎̳̣̄̀̽̐̔̒̚̕͝u̵̯̫̤͇̠̱̕p̵̢͍̤͐́t̶̡̝̪̟̳͒̓̀̀̂̓̾͐ę̵̄͌̈́̽̾̈́͒̀͑͛͠d̴̝̥͇̞̙͉͙̪̍͛͑̐̎̒̽͛̾̚]̴̡̀̑͒̎́̽̀ ̴̹̩̜̗̭̣͔͔͓̝̙̤̀̀͋̀͋̆́́͌̎͝͝B̵̡̼̻͉͙̼͕͔̘̦̮̈́̏̊̾͆̽̀È̸̛̦̞̗͍͚̠̇̓̎͛͐̃͘̕͝͠Ć̴̛̞̳̖̱̹͔̜͆͋̚͠͝O̴̰̾̀̇̔̀̔̌͝M̵̨̧̤̞̳͛̾͐́̍̄̑͂͘͝Ę̴̛̭̹̰͙͂̈́͆̎̏̈́̕ ̵̢̱̪̗̣̳̆͛̀̏̔̃̓̚͝͝Ā̶̧̛̭̼̪̪͋̊̂̿̈́̉ͅS̵̢̮͙͔̦͕͍̪̤̺̒̓̎̍̓̈́̆̈́̓̆̐̒ͅ ̷̢̛̖̮̻͓̻̣̜̰̩̐͒̄̃̽́̽̑́͘͝G̵̨̡̣̟̭̖͎̺̻̓̕͜O̴̡̯̯̭͙͈̗̜̅͊̆Ḑ̶̲̻͂̅̊͌̀͗͒̓̿S̸̛̳̤̺̝̤̽͐͗";
+
         private readonly List<string> _pokemonNames = new List<string>();
         private readonly Dictionary<string, IEnumerable<string>> _triviaCache = new Dictionary<string, IEnumerable<string>>();
         private Random _random = new Random();
@@ -137,6 +142,11 @@ namespace Yetibyte.Twitch.Bobota.MessageSources.Pokewiki
 
                 if (!string.IsNullOrWhiteSpace(pokemonNameParam))
                 {
+                    if (pokemonNameParam.Equals(MISSINGNO_POKEMON_NAME, StringComparison.OrdinalIgnoreCase) || pokemonNameParam.Equals(MISSINGNO_POKEMON_NAME_ALT, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return "{USER}, " + MISSINGNO_EASTEREGG_MSG;
+                    }
+
                     if (int.TryParse(pokemonNameParam, out int pokemonNumberParam))
                     {
                         if (!IsValidPokemonNumber(pokemonNumberParam))
